@@ -3,9 +3,9 @@ require_relative "lib/xml_framework/version"
 Gem::Specification.new do |spec|
   spec.name        = "xml_framework"
   spec.version     = XmlFramework::VERSION
-  spec.authors     = ["XML Framework Team"]
-  spec.email       = ["team@xmlframework.com"]
-  spec.homepage    = "https://github.com/xmlframework/xml_framework"
+  spec.authors     = ["Edith oga"]
+  spec.email       = ["edithoga759@gmail.com"]
+  spec.homepage    = "https://github.com/ogaed/xml_framework"
   spec.summary     = "Ruby framework for building web applications from XML templates"
   spec.description = "A Ruby framework that converts XML templates into full-featured Rails web applications with PostgreSQL integration"
   spec.license     = "MIT"

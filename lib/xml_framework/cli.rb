@@ -2,6 +2,8 @@ require 'optparse'
 require 'pg'
 require_relative 'database_inspector'
 require_relative 'xml_generator'
+require_relative 'parser'
+require_relative 'renderer'
 
 module XmlFramework
   class CLI
@@ -331,7 +333,6 @@ module XmlFramework
       
       File.write('config/app.xml', sample_xml)
       
-      # Create README
       readme_content = <<~MD
         # #{project_name}
         
@@ -340,3 +341,232 @@ module XmlFramework
         ## Setup
         
         1. Set database connection:
+           \`\`\`
+           export DATABASE_URL="postgresql://user:pass@localhost/dbname"
+           \`\`\`
+        
+        2. Inspect your database:
+           \`\`\`
+           xml_framework inspect
+           \`\`\`
+        
+        3. Generate XML from database:
+           \`\`\`
+           xml_framework generate --auto
+           \`\`\`
+        
+        4. Render to HTML:
+           \`\`\`
+           xml_framework render
+           \`\`\`
+        
+        5. Start server:
+           \`\`\`
+           xml_framework server
+           \`\`\`
+      MD
+      
+      File.write('README.md', readme_content)
+    end
+
+    def ensure_directory_exists(dir)
+      Dir.mkdir(dir) unless Dir.exist?(dir)
+    end
+
+    def generate_html_page(parsed_xml)
+      app_config = parsed_xml[:app_config] || {}
+      
+      <<~HTML
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>#{app_config[:name] || 'XML Framework App'}</title>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+            <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+            <link href="styles.css" rel="stylesheet">
+        </head>
+        <body>
+            <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+                <div class="container">
+                    <a class="navbar-brand" href="#">
+                        <i class="fas fa-cube"></i> #{app_config[:name] || 'XML Framework'}
+                    </a>
+                </div>
+            </nav>
+            
+            <div class="container-fluid mt-4">
+                <div id="app-content">
+                    <h1>Welcome to #{app_config[:name] || 'XML Framework'}</h1>
+                    <p>Your database-driven application is ready!</p>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        This HTML was generated from your XML configuration.
+                        Database integration and dynamic content loading will be added in the next version.
+                    </div>
+                </div>
+            </div>
+            
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+            <script src="app.js"></script>
+        </body>
+        </html>
+      HTML
+    end
+
+    def generate_css
+      <<~CSS
+        .xml-dashboard {
+            margin: 20px 0;
+        }
+        
+        .dashboard-tiles {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .dashboard-tile {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .dashboard-tile:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .tile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .tile-header i {
+            font-size: 24px;
+            margin-right: 10px;
+            color: #007bff;
+        }
+        
+        .tile-title {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .tile-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .xml-grid {
+            margin: 20px 0;
+        }
+        
+        .data-grid {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .data-grid th,
+        .data-grid td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .data-grid th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .data-grid tr:hover {
+            background-color: #f5f5f5;
+        }
+      CSS
+    end
+
+    def generate_javascript
+      <<~JS
+        // XML Framework JavaScript
+        console.log('XML Framework loaded');
+        
+        function jumpToView(viewName) {
+            console.log('Jumping to view:', viewName);
+            // Navigation logic will be implemented here
+        }
+        
+        function openBrowser(action, value) {
+            console.log('Opening browser action:', action, 'with value:', value);
+            // Browser action logic will be implemented here
+        }
+        
+        function generateReport(reportFile) {
+            console.log('Generating report:', reportFile);
+            // Report generation logic will be implemented here
+        }
+        
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('XML Framework application initialized');
+        });
+      JS
+    end
+
+    def show_help
+      puts <<~HELP
+        XML Framework - Database-driven XML to HTML generator
+
+        Commands:
+          new PROJECT_NAME              Create a new XML Framework project
+          inspect [options]             Inspect database tables and structure
+          generate [options]            Generate XML from database tables
+          render [options]              Convert XML to HTML
+          server                        Start local web server
+          db:create                     Create database
+          db:migrate                    Run database migrations
+
+        Examples:
+          # Create new project
+          xml_framework new my_university_app
+
+          # Inspect database
+          xml_framework inspect --database-url postgresql://localhost/mydb
+
+          # Auto-generate XML from all tables
+          xml_framework generate --auto --app-name "University System"
+
+          # Generate XML for specific table
+          xml_framework generate --table students
+
+          # Generate XML for specific tables
+          xml_framework generate --tables users,courses,enrollments
+
+          # Render XML to HTML
+          xml_framework render
+
+          # Start server
+          xml_framework server
+
+        Environment Variables:
+          DATABASE_URL                  PostgreSQL connection string
+
+        Workflow:
+          1. Create project: xml_framework new my_app
+          2. Set DATABASE_URL environment variable
+          3. Inspect database: xml_framework inspect
+          4. Generate XML: xml_framework generate --auto
+          5. Render HTML: xml_framework render
+          6. Start server: xml_framework server
+      HELP
+    end
+  end
+end
