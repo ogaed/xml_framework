@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<APP password="change_password" org="org_id" name="UMIS">
+	<MENU role="admissions" name="UMIS Admissions">
+		<MENU name="Control Panel">
+			<MENU name="Contact Types">21</MENU>
+			<MENU name="Health Items">22</MENU>
+			<MENU name="Majors">826</MENU>
+		</MENU>
+		
+		<MENU icon="fa fa-exchange font-black-sharp" name="Admissions">
+			<MENU icon="far fa-file-check font-black-sharp" name="Applications">965</MENU>
+			<MENU icon="far fa-file-check font-black-sharp" name="Paid Applications">796</MENU>
+			<MENU icon="far fa-file-excel font-black-sharp" name="Unsubmitted Applications">828</MENU>
+			<MENU icon="far fa-file-check font-black-sharp" name="Submitted applications">787</MENU>
+			<MENU icon="far fa-user-plus font-black-sharp" name="Admit">920</MENU>
+			<MENU name="Reset Password">28</MENU>
+		</MENU>
+	</MENU>
+
+	<DESK access="open" w="700" h="500" name="Dashboard" key="1">
+		<DASHBOARD w="700" name="Dashboard" refresh="300">
+			<TILE access="admin" jumpview="965:0" display="number" name="TOTAL" groupby="org_id"
+				  where="1=1" title="Total Applicants" table="applying">
+				<TEXTFIELD w="75" icon="fa fa-users font-blue" fnct="COALESCE(count(applying_id), 0)" title="Total Applicants">total_applicants</TEXTFIELD>
+			</TILE>
+
+			<TILE access="admin" jumpview="920:0" display="number" name="ADMITTED" 
+				  where="(existing_id IS NOT NULL)" title="Admitted Students" groupby="org_id" table="vw_registrations">
+				<TEXTFIELD w="75" icon="fa fa-user-graduate font-green" fnct="COALESCE(count(registration_id), 0)" title="Admitted">admitted_count</TEXTFIELD>
+			</TILE>
+			
+			<TILE access="admin" jumpview="965:0" display="number" groupby="org_id" name="UNPAID" 
+				  where="paid=false" title="Unpaid Applications" table="vw_applying">
+				<TEXTFIELD w="75" icon="fa fa-exclamation-triangle font-red-sharp" fnct="COALESCE(count(applying_id), 0)" title="Unpaid">unpaid_count</TEXTFIELD>
+			</TILE>
+			
+			<TILE access="admin" jumpview="787:0" display="number" groupby="org_id" name="COMPLETED" 
+				  where="status='Submitted'" title="Completed Applications" table="vw_applying">
+				<TEXTFIELD w="75" icon="fa fa-check-circle font-blue-sharp" fnct="COALESCE(count(applying_id), 0)" title="Completed">completed_count</TEXTFIELD>
+			</TILE>
+		</DASHBOARD>
+	</DESK>
+
+	<DESK w="700" h="550" name="Applications" key="965">
+		<GRID keyfield="applying_id" name="Applications" table="applying">
+			<TEXTFIELD w="75" title="Application ID">applying_id</TEXTFIELD>
+			<TEXTFIELD w="75" title="Surname">surname</TEXTFIELD>
+			<TEXTFIELD w="75" title="First Name">first_name</TEXTFIELD>
+			<TEXTFIELD w="75" title="Middle Name">middle_name</TEXTFIELD>
+			<TEXTFIELD w="75" title="Email">email</TEXTFIELD>
+			<TEXTFIELD w="75" title="Primary Telephone">primary_telephone</TEXTFIELD>
+			<CHECKBOX w="50" title="Paid">paid</CHECKBOX>
+			<TEXTFIELD w="75" title="Status">status</TEXTFIELD>
+			
+			<FORM keyfield="applying_id" name="Applications" table="applying">
+				<TEXTFIELD w="150" h="20" x="10" y="10" title="Surname">surname</TEXTFIELD>
+				<TEXTFIELD w="150" h="20" x="290" y="10" title="First Name">first_name</TEXTFIELD>
+				<TEXTFIELD w="150" h="20" x="10" y="30" title="Middle Name">middle_name</TEXTFIELD>
+				<TEXTFIELD w="150" h="20" x="290" y="30" title="Primary Telephone">primary_telephone</TEXTFIELD>
+				<TEXTFIELD w="430" h="20" x="10" y="50" title="Email">email</TEXTFIELD>
+				<COMBOLIST w="150" h="20" x="10" y="70" title="Mode of Entry">mode_of_entry
+					<DATA>UTME</DATA>
+					<DATA>DE</DATA>
+					<DATA>TRANSFER</DATA>
+				</COMBOLIST>
+				<CHECKBOX w="150" h="20" x="290" y="70" title="Paid">paid</CHECKBOX>
+			</FORM>
+		</GRID>
+	</DESK>
+
+	<DESK w="700" h="550" name="Admissions" key="920">
+		<GRID keyfield="registration_id" name="Submitted Applications" table="vw_registrations" where="(existing_id is null)">
+			<TEXTFIELD w="80" title="Reg. ID">registration_id</TEXTFIELD>
+			<TEXTFIELD w="100" title="First Name">first_name</TEXTFIELD>
+			<TEXTFIELD w="100" title="Surname">surname</TEXTFIELD>
+			<TEXTFIELD w="100" title="Middle Name">middle_name</TEXTFIELD>
+			<TEXTFIELD w="60" title="Email">email</TEXTFIELD>
+			<TEXTFIELD w="40" title="Sex">sex</TEXTFIELD>
+			
+			<ACTIONS>
+				<ACTION fnct="admit_student" title="Admit Student">Admit Student</ACTION>
+				<ACTION fnct="reject_application" title="Reject">Reject</ACTION>
+			</ACTIONS>
+		</GRID>
+	</DESK>
+
+	<DESK w="700" h="550" name="Majors" key="826">
+		<GRID keyfield="major_id" name="Majors" table="majors">
+			<TEXTFIELD w="75" title="Major ID">major_id</TEXTFIELD>
+			<TEXTFIELD w="150" title="Major Name">major_name</TEXTFIELD>
+			<TEXTFIELD w="75" title="Application Fee">application_fees</TEXTFIELD>
+			<CHECKBOX w="75" title="Can Apply">can_apply</CHECKBOX>
+			
+			<FORM keyfield="major_id" name="Majors" table="majors">
+				<TEXTFIELD w="430" h="20" x="10" y="10" title="Major Name">major_name</TEXTFIELD>
+				<TEXTFIELD w="150" h="20" x="10" y="30" title="Application Fee">application_fees</TEXTFIELD>
+				<CHECKBOX w="150" h="20" x="290" y="30" title="Can Apply">can_apply</CHECKBOX>
+				<TEXTAREA w="430" h="70" x="10" y="50" title="Details">details</TEXTAREA>
+			</FORM>
+		</GRID>
+	</DESK>
+</APP>

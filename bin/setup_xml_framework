@@ -1,0 +1,29 @@
+#!/usr/bin/env ruby
+
+puts "Setting up XML Framework..."
+
+# Create necessary directories
+%w[
+  app/controllers
+  app/views/xml_app
+  config
+  lib/xml_framework
+  scripts
+].each do |dir|
+  FileUtils.mkdir_p(dir)
+  puts "Created directory: #{dir}"
+end
+
+# Run database setup
+puts "\nSetting up database..."
+system("ruby scripts/setup_database.rb")
+
+# Install gems
+puts "\nInstalling gems..."
+system("bundle install")
+
+puts "\n✅ XML Framework setup complete!"
+puts "\nTo get started:"
+puts "1. Place your XML file at config/app.xml"
+puts "2. Run: rails server"
+puts "3. Visit: http://localhost:3000"

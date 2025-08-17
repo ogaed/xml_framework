@@ -1,0 +1,60 @@
+#!/usr/bin/env ruby
+
+require_relative '../lib/xml_framework'
+
+command = ARGV[0]
+case command
+when 'new'
+  app_name = ARGV[1]
+  xml_path = ARGV[2]
+  
+  if app_name.nil? || xml_path.nil?
+    puts "Usage: xml_framework new APP_NAME XML_PATH"
+    exit 1
+  end
+  
+  unless File.exist?(xml_path)
+    puts "Error: XML file not found at #{xml_path}"
+    exit 1
+  end
+  
+  XmlFramework.generate_app(app_name, xml_path)
+  
+when 'server'
+  if File.exist?('config/application.rb')
+    exec('rails server')
+  else
+    puts "Error: Not in a Rails application directory"
+    exit 1
+  end
+  
+when 'db:create'
+  if File.exist?('config/application.rb')
+    exec('rails db:create')
+  else
+    puts "Error: Not in a Rails application directory"
+    exit 1
+  end
+  
+when 'db:migrate'
+  if File.exist?('config/application.rb')
+    exec('rails db:migrate')
+  else
+    puts "Error: Not in a Rails application directory"
+    exit 1
+  end
+  
+else
+  puts <<~HELP
+    XML Framework Commands:
+    
+    xml_framework new APP_NAME XML_PATH    - Generate new Rails app from XML
+    xml_framework server                   - Start the Rails server
+    xml_framework db:create               - Create the database
+    xml_framework db:migrate              - Run database migrations
+    
+    Examples:
+    xml_framework new my_university_app config/university.xml
+    xml_framework server
+  HELP
+end
