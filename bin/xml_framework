@@ -10,15 +10,20 @@ when 'new'
   
   if app_name.nil? || xml_path.nil?
     puts "Usage: xml_framework new APP_NAME XML_PATH"
+    puts "Example: xml_framework new my_app config/app.xml"
     exit 1
   end
   
   unless File.exist?(xml_path)
     puts "Error: XML file not found at #{xml_path}"
+    puts "Please provide a valid XML file path"
     exit 1
   end
   
+  puts "Generating Rails application '#{app_name}' from #{xml_path}..."
   XmlFramework.generate_app(app_name, xml_path)
+  puts "Application generated successfully!"
+  puts "Run 'cd #{app_name}' to enter the project directory"
   
 when 'server'
   if File.exist?('config/application.rb')
