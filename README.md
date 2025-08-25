@@ -6,8 +6,7 @@ A Ruby framework for building web applications from XML templates with Rails and
 
 ```bash
 gem install xml_framework
-
-Thought for 2sHere's how to use your XML Framework:
+```
 
 ## Installation & Setup
 
