@@ -82,6 +82,16 @@ module XmlFramework
       desk_node.xpath('./FILTER').each do |filter|
         components << parse_filter(filter)
       end
+
+      # Parse ACCORDION components
+      desk_node.xpath('./ACCORDION').each do |accordion|
+        components << parse_accordion(accordion)
+      end
+
+      # Parse FORM components at desk level
+      desk_node.xpath('./FORM').each do |form|
+        components << parse_form(form)
+      end
       
       components
     end
@@ -92,8 +102,23 @@ module XmlFramework
         name: dashboard_node['name'],
         width: dashboard_node['w'],
         refresh: dashboard_node['refresh'],
-        tiles: parse_tiles(dashboard_node)
+        tiles: parse_tiles(dashboard_node),
+        links: parse_dashboard_links(dashboard_node)
       }
+    end
+
+    def parse_dashboard_links(dashboard_node)
+      links_node = dashboard_node.at_xpath('./LINKS')
+      return [] unless links_node
+
+      links_node.xpath('./LINK').map do |link|
+        {
+          title: link['title'] || link.text.strip,
+          view: link['view'],
+          url: link['url'],
+          icon: link['icon']
+        }
+      end
     end
 
     def parse_tiles(dashboard_node)
@@ -128,6 +153,8 @@ module XmlFramework
       {
         type: 'grid',
         name: grid_node['name'],
+        role: grid_node['role'],
+        access: grid_node['access'],
         keyfield: grid_node['keyfield'],
         table: grid_node['table'],
         where: grid_node['where'],
@@ -135,6 +162,8 @@ module XmlFramework
         limit: grid_node['limit'],
         noorg: grid_node['noorg'],
         linkfield: grid_node['linkfield'],
+        filter: grid_node['filter'],
+        filterfield: grid_node['filterfield'],
         fields: parse_grid_fields(grid_node),
         forms: parse_forms(grid_node),
         actions: parse_actions(grid_node),
@@ -164,6 +193,15 @@ module XmlFramework
       grid_node.xpath('./BROWSER').each do |field|
         fields << parse_browser(field)
       end
+
+      grid_node.xpath('./WEBLINK').each { |f| fields << parse_weblink(f) }
+      grid_node.xpath('./TEXTLINK').each { |f| fields << parse_textlink(f) }
+      grid_node.xpath('./PICTURE').each { |f| fields << parse_picture(f) }
+      grid_node.xpath('./EDITFIELD').each { |f| fields << parse_editfield(f) }
+      grid_node.xpath('./BUTTON').each { |f| fields << parse_button(f) }
+      grid_node.xpath('./ACTION').each { |f| fields << parse_grid_action(f) }
+      grid_node.xpath('./SEARCH').each { |f| fields << parse_search(f) }
+      grid_node.xpath('./ROWCOUNTER').each { |f| fields << parse_rowcounter(f) }
       
       fields
     end
@@ -217,6 +255,84 @@ module XmlFramework
       }
     end
 
+    def parse_weblink(field_node)
+      {
+        type: 'weblink',
+        width: field_node['w'],
+        title: field_node['title'],
+        url: field_node['url'],
+        field_name: field_node.text.strip
+      }
+    end
+
+    def parse_textlink(field_node)
+      {
+        type: 'textlink',
+        width: field_node['w'],
+        title: field_node['title'],
+        url: field_node['url'],
+        field_name: field_node.text.strip
+      }
+    end
+
+    def parse_picture(field_node)
+      {
+        type: 'picture',
+        width: field_node['w'],
+        title: field_node['title'],
+        pictures: field_node['pictures'],
+        access: field_node['access'],
+        field_name: field_node.text.strip
+      }
+    end
+
+    def parse_editfield(field_node)
+      {
+        type: 'editfield',
+        width: field_node['w'],
+        title: field_node['title'],
+        field_name: field_node.text.strip
+      }
+    end
+
+    def parse_button(field_node)
+      {
+        type: 'button',
+        width: field_node['w'],
+        title: field_node['title'],
+        js_function: field_node['js.function'] || field_node['js_function'],
+        field_name: field_node.text.strip
+      }
+    end
+
+    def parse_grid_action(field_node)
+      {
+        type: 'action',
+        width: field_node['w'],
+        title: field_node['title'] || field_node['action'],
+        field_name: field_node.text.strip
+      }
+    end
+
+    def parse_search(field_node)
+      {
+        type: 'search',
+        width: field_node['w'],
+        title: field_node['title'],
+        js: field_node['js'],
+        field_name: field_node.text.strip
+      }
+    end
+
+    def parse_rowcounter(field_node)
+      {
+        type: 'rowcounter',
+        width: field_node['w'],
+        title: field_node['title'] || '#',
+        field_name: field_node.text.strip.presence || 'row_number_counter'
+      }
+    end
+
     def parse_forms(parent_node)
       parent_node.xpath('./FORM').map do |form|
         parse_form(form)
@@ -227,12 +343,15 @@ module XmlFramework
       {
         type: 'form',
         name: form_node['name'],
+        role: form_node['role'],
+        access: form_node['access'],
         keyfield: form_node['keyfield'],
         table: form_node['table'],
         linkfield: form_node['linkfield'],
         width: form_node['tw'],
         height: form_node['th'],
         noorg: form_node['noorg'],
+        collapse: form_node['collapse'],
         fields: parse_form_fields(form_node)
       }
     end
@@ -262,6 +381,34 @@ module XmlFramework
       
       form_node.xpath('./TEXTDATE').each do |field|
         fields << parse_form_textdate(field)
+      end
+
+      form_node.xpath('./TEXTDECIMAL').each do |field|
+        fields << parse_form_textdecimal(field)
+      end
+
+      form_node.xpath('./PASSWORD').each do |field|
+        fields << parse_password(field)
+      end
+
+      form_node.xpath('./EDITOR').each do |field|
+        fields << parse_editor(field)
+      end
+
+      form_node.xpath('./MULTISELECT').each do |field|
+        fields << parse_multiselect(field)
+      end
+
+      form_node.xpath('./HTML').each do |field|
+        fields << parse_html(field)
+      end
+
+      form_node.xpath('./PICTURE').each do |field|
+        fields << parse_form_picture(field)
+      end
+
+      form_node.xpath('./FILE').each do |field|
+        fields << parse_form_file(field)
       end
       
       fields
@@ -347,6 +494,65 @@ module XmlFramework
       }
     end
 
+    def parse_form_textdecimal(field_node)
+      {
+        type: 'textdecimal',
+        width: field_node['w'],
+        height: field_node['h'],
+        x: field_node['x'],
+        y: field_node['y'],
+        title: field_node['title'],
+        field_name: field_node.text.strip
+      }
+    end
+
+    def parse_password(field_node)
+      {
+        type: 'password',
+        width: field_node['w'],
+        height: field_node['h'],
+        x: field_node['x'],
+        y: field_node['y'],
+        title: field_node['title'],
+        field_name: field_node.text.strip
+      }
+    end
+
+    def parse_editor(field_node)
+      {
+        type: 'editor',
+        width: field_node['w'],
+        height: field_node['h'],
+        x: field_node['x'],
+        y: field_node['y'],
+        title: field_node['title'],
+        field_name: field_node.text.strip
+      }
+    end
+
+    def parse_multiselect(field_node)
+      {
+        type: 'multiselect',
+        width: field_node['w'],
+        height: field_node['h'],
+        x: field_node['x'],
+        y: field_node['y'],
+        title: field_node['title'],
+        lptable: field_node['lptable'],
+        lpfield: field_node['lpfield'],
+        lpkey: field_node['lpkey'],
+        field_name: field_node.text.strip
+      }
+    end
+
+    def parse_html(field_node)
+      {
+        type: 'html',
+        html: field_node['html'],
+        field_name: field_node.text.strip
+      }
+    end
+
     def parse_actions(parent_node)
       actions_node = parent_node.at_xpath('./ACTIONS')
       return [] unless actions_node
@@ -355,6 +561,8 @@ module XmlFramework
         {
           function: action['fnct'],
           title: action['title'],
+          role: action['role'],
+          access: action['access'],
           phase: action['phase'],
           text: action.text.strip
         }
@@ -371,18 +579,105 @@ module XmlFramework
       {
         type: 'jasper',
         name: jasper_node['name'],
+        role: jasper_node['role'],
+        access: jasper_node['access'],
         reportfile: jasper_node['reportfile'],
-        filtered: jasper_node['filtered']
+        filtered: jasper_node['filtered'],
+        linkfield: jasper_node['linkfield'],
+        linkparams: jasper_node['linkparams']
+      }
+    end
+
+    def parse_accordion(node)
+      panels = []
+      node.xpath('./FORM').each { |f| panels << parse_form(f) }
+      node.xpath('./GRID').each { |g| panels << parse_grid(g) }
+
+      {
+        type: 'accordion',
+        name: node['name'],
+        role: node['role'],
+        access: node['access'],
+        panels: panels
       }
     end
 
     def parse_filter(filter_node)
+      tabs = []
+      filter_node.xpath('./FILTERGRID').each { |g| tabs << parse_filter_grid(g) }
+      filter_node.xpath('./DRILLDOWN').each { |d| tabs << parse_drilldown_node(d) }
+      filter_node.xpath('./FILTERFORM').each { |f| tabs << parse_filter_form(f) }
+      filter_node.xpath('./JASPER').each { |j| tabs << parse_jasper(j) }
+
       {
         type: 'filter',
         name: filter_node['name'],
+        role: filter_node['role'],
+        access: filter_node['access'],
         location: filter_node['location'],
+        tabs: tabs,
         drilldowns: parse_drilldowns(filter_node),
         reports: parse_filter_reports(filter_node)
+      }
+    end
+
+    def parse_filter_grid(node)
+      grid = parse_grid(node)
+      grid[:type] = 'filtergrid'
+      grid[:name] = node['name'] || grid[:name]
+      grid[:filter] = node['filter']
+      grid[:filterfield] = node['filterfield']
+      grid
+    end
+
+    def parse_filter_form(node)
+      form = parse_form(node)
+      form[:type] = 'filterform'
+      form[:name] = node['name'] || form[:name]
+      form
+    end
+
+    def parse_drilldown_node(node)
+      {
+        type: 'drilldown',
+        name: node['name'],
+        filter: node['filter'],
+        filterfield: node['filterfield'],
+        keyfield: node['keyfield'],
+        listfield: node['listfield'],
+        table: node['table'],
+        where: node['where'],
+        wherefield: node['wherefield'],
+        orderby: node['orderby'],
+        pos: node['pos'],
+        noorg: node['noorg'],
+        children: node.xpath('./DRILLDOWN').map { |c| parse_drilldown_node(c) }
+      }
+    end
+
+    def parse_form_picture(field_node)
+      {
+        type: 'picture',
+        width: field_node['w'],
+        height: field_node['h'],
+        x: field_node['x'],
+        y: field_node['y'],
+        title: field_node['title'],
+        pictures: field_node['pictures'],
+        access: field_node['access'],
+        field_name: field_node.text.strip
+      }
+    end
+
+    def parse_form_file(field_node)
+      {
+        type: 'file',
+        width: field_node['w'],
+        height: field_node['h'],
+        x: field_node['x'],
+        y: field_node['y'],
+        title: field_node['title'],
+        field_name: field_node.text.strip
       }
     end
 

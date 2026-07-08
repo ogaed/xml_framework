@@ -1,117 +1,129 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
   <head>
-    <title>XML Framework App</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title><%= @xml_app&.config&.dig(:app_config, :name) || 'XML Framework' %></title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
-    
-    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-    <%= javascript_importmap_tags %>
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <style>
-      .dashboard-tiles {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-        margin: 20px 0;
-      }
-      
-      .dashboard-tile {
-        background: white;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        padding: 20px;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-      }
-      
-      .dashboard-tile:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-      }
-      
-      .tile-header {
-        display: flex;
-        align-items: center;
-        margin-bottom: 10px;
-      }
-      
-      .tile-header i {
-        font-size: 24px;
-        margin-right: 10px;
-      }
-      
-      .tile-title {
-        font-weight: bold;
-        color: #333;
-      }
-      
-      .tile-number {
-        font-size: 32px;
-        font-weight: bold;
-        color: #007bff;
-      }
-      
-      .xml-grid {
-        margin: 20px 0;
-      }
-      
-      .xml-form {
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        border: 1px solid #ddd;
-        margin: 20px 0;
-      }
-      
-      .desk-container {
-        padding: 20px;
-      }
-    </style>
+
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,400,500,600,700" />
+    <link href="/theme/plugins.bundle.css" rel="stylesheet" type="text/css" />
+    <link href="/theme/style.bundle.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-grid.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/styles/ag-theme-alpine.min.css" rel="stylesheet" />
+    <link href="/assets/xml_framework.css" rel="stylesheet" type="text/css" />
+
+    <script>
+      if (window.top != window.self) { window.top.location.replace(window.self.location.href); }
+    </script>
   </head>
 
-  <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <div class="container">
-        <%= link_to "XML Framework", root_path, class: "navbar-brand" %>
-        
-        <div class="navbar-nav">
-          <%= link_to "Dashboard", dashboard_path, class: "nav-link" %>
+  <body id="kt_app_body"
+        data-kt-app-layout="dark-sidebar"
+        data-kt-app-header-fixed="true"
+        data-kt-app-sidebar-enabled="true"
+        data-kt-app-sidebar-fixed="true"
+        data-kt-app-sidebar-hoverable="true"
+        class="app-default">
+    <script>
+      var defaultThemeMode = "light";
+      var themeMode = localStorage.getItem("data-bs-theme") || defaultThemeMode;
+      document.documentElement.setAttribute("data-bs-theme", themeMode);
+    </script>
+
+    <div class="d-flex flex-column flex-root app-root" id="kt_app_root">
+      <div class="app-page flex-column flex-column-fluid" id="kt_app_page">
+
+        <!-- Header -->
+        <div id="kt_app_header" class="app-header" data-kt-sticky="true">
+          <div class="app-container container-fluid d-flex align-items-stretch justify-content-between">
+            <div class="d-flex align-items-center d-lg-none ms-n3 me-2">
+              <div class="btn btn-icon btn-active-color-primary w-35px h-35px" id="kt_app_sidebar_mobile_toggle">
+                <i class="ki-duotone ki-abstract-14 fs-2"><span class="path1"></span><span class="path2"></span></i>
+              </div>
+            </div>
+            <div class="d-flex align-items-center flex-grow-1 flex-lg-grow-0">
+              <span class="text-gray-800 fw-bold d-lg-none"><%= @xml_app&.config&.dig(:app_config, :name) || 'XML Framework' %></span>
+            </div>
+            <div class="d-flex align-items-stretch flex-lg-grow-1 justify-content-end">
+              <div class="app-navbar flex-shrink-0 d-flex align-items-center gap-2 px-4">
+                <% if user_signed_in? %>
+                  <span class="text-gray-700 fw-semibold d-none d-md-inline">
+                    <i class="ti ti-user me-1"></i><%= current_username %>
+                  </span>
+                  <%= button_to logout_path, method: :delete, class: 'btn btn-sm btn-light-danger' do %>
+                    <i class="ti ti-logout me-1"></i> Logout
+                  <% end %>
+                <% else %>
+                  <%= link_to login_path, class: 'btn btn-sm btn-primary' do %>
+                    <i class="ti ti-login me-1"></i> Login
+                  <% end %>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="app-wrapper flex-column flex-row-fluid" id="kt_app_wrapper">
+
+          <!-- Sidebar -->
+          <div id="kt_app_sidebar" class="app-sidebar flex-column"
+               data-kt-drawer="true" data-kt-drawer-name="app-sidebar"
+               data-kt-drawer-activate="{default: true, lg: false}"
+               data-kt-drawer-overlay="true" data-kt-drawer-width="225px"
+               data-kt-drawer-direction="start"
+               data-kt-drawer-toggle="#kt_app_sidebar_mobile_toggle">
+            <div class="app-sidebar-logo px-6" id="kt_app_sidebar_logo">
+              <%= link_to root_path, class: 'text-decoration-none' do %>
+                <span class="text-white fw-bold fs-4"><%= @xml_app&.config&.dig(:app_config, :name) || 'XML Framework' %></span>
+              <% end %>
+            </div>
+            <div class="app-sidebar-menu overflow-hidden flex-column-fluid">
+              <div id="kt_app_sidebar_menu_wrapper" class="app-sidebar-wrapper hover-scroll-overlay-y my-5 px-3">
+                <div class="menu menu-column menu-rounded menu-sub-indention fw-semibold fs-6" data-kt-menu="true">
+                  <div class="menu-item">
+                    <%= link_to dashboard_path, class: 'menu-link' do %>
+                      <span class="menu-icon"><i class="ti ti-layout-dashboard"></i></span>
+                      <span class="menu-title">Dashboard</span>
+                    <% end %>
+                  </div>
+                  <% if defined?(@menu_html) && @menu_html.present? %>
+                    <%= raw @menu_html %>
+                  <% end %>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main content -->
+          <div class="app-main flex-column flex-row-fluid" id="kt_app_main">
+            <div class="d-flex flex-column flex-column-fluid">
+              <div id="kt_app_content" class="app-content flex-column-fluid">
+                <div id="kt_app_content_container" class="app-container container-fluid py-5">
+                  <%= yield %>
+                </div>
+              </div>
+            </div>
+            <div id="kt_app_footer" class="app-footer">
+              <div class="app-container container-fluid d-flex flex-column flex-md-row flex-center flex-md-stack py-3">
+                <div class="text-gray-900 order-2 order-md-1">
+                  <span class="text-muted fw-semibold me-1">&copy; <%= Time.current.year %></span>
+                  <span class="text-gray-800 fw-semibold"><%= @xml_app&.config&.dig(:app_config, :name) || 'XML Framework' %></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
-    </nav>
-    
-    <div class="container-fluid">
-      <%= yield %>
     </div>
-    
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script>
-      function jumpToView(viewKey) {
-        if (viewKey) {
-          const key = viewKey.split(':')[0];
-          window.location.href = `/xml_app/${key}`;
-        }
-      }
-      
-      function generateReport(reportFile) {
-        alert(`Generating report: ${reportFile}`);
-        // Implement report generation logic
-      }
-      
-      function openBrowser(action, value) {
-        alert(`Opening ${action} with value: ${value}`);
-        // Implement browser action logic
-      }
-    </script>
+
+    <script>var hostUrl = "/theme/";</script>
+    <script src="/theme/plugins.bundle.js"></script>
+    <script src="/theme/scripts.bundle.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community@31.3.2/dist/ag-grid-community.min.js"></script>
+    <script src="/assets/xml_framework.js"></script>
   </body>
 </html>

@@ -1,4 +1,17 @@
-# Main framework entry point
+require_relative 'xml_framework/version'
+require_relative 'xml_framework/engine'
+require_relative 'xml_framework/session_store'
+require_relative 'xml_framework/element_navigator'
+require_relative 'xml_framework/query'
+require_relative 'xml_framework/field_renderer'
+require_relative 'xml_framework/json_query'
+require_relative 'xml_framework/access_control'
+require_relative 'xml_framework/file_uploader'
+require_relative 'xml_framework/views/accordion_renderer'
+require_relative 'xml_framework/views/filter_renderer'
+require_relative 'xml_framework/views/jasper_renderer'
+require_relative 'xml_framework/web_engine'
+require_relative 'xml_framework/controller_helpers'
 require_relative 'xml_framework/parser'
 require_relative 'xml_framework/renderer'
 require_relative 'xml_framework/database'
@@ -6,13 +19,28 @@ require_relative 'xml_framework/components'
 
 module XmlFramework
   class Application
-    attr_reader :config, :parser, :renderer, :database
+    attr_reader :config, :parser, :renderer, :database, :navigator
 
-    def initialize(xml_file_path)
+    def initialize(xml_file_path, database: nil)
       @parser = Parser.new
       @renderer = Renderer.new
-      @database = Database.new
+      @database = database || Database.from_env
       @config = @parser.parse_file(xml_file_path)
+      @navigator = ElementNavigator.new(@config)
+    end
+
+    def web_engine(session_store)
+      WebEngine.new(@config, database: @database, session_store: session_store)
+    end
+
+    def render_page(desk_key, session_store: nil, data_item: nil)
+      if session_store
+        web_engine(session_store).render_page(desk_key, data_item: data_item)
+      else
+        desk = find_desk_by_key(desk_key)
+        return nil unless desk
+        @renderer.render_desk(desk, @database)
+      end
     end
 
     def generate_rails_app
@@ -20,13 +48,6 @@ module XmlFramework
       create_views
       create_models
       create_routes
-    end
-
-    def render_page(desk_key)
-      desk = find_desk_by_key(desk_key)
-      return nil unless desk
-
-      @renderer.render_desk(desk, @database)
     end
 
     private

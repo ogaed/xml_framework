@@ -3,3 +3,8 @@
     <%= raw @page_content %>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', initXmlFramework);
+  if (document.readyState !== 'loading') initXmlFramework();
+</script>

@@ -2,14 +2,24 @@ require 'pg'
 
 module XmlFramework
   class Database
+    attr_reader :connection
+
     def initialize
-      @connection = PG.connect(
-        host: ENV['DB_HOST'] || 'localhost',
-        port: ENV['DB_PORT'] || 5432,
-        dbname: ENV['DB_NAME'] || 'xml_framework_db',
-        user: ENV['DB_USER'] || 'postgres',
-        password: ENV['DB_PASSWORD'] || 'password'
-      )
+      @connection = if ENV['DATABASE_URL'].present?
+                      PG.connect(ENV['DATABASE_URL'])
+                    else
+                      PG.connect(
+                        host: ENV['DB_HOST'] || 'localhost',
+                        port: ENV['DB_PORT'] || 5432,
+                        dbname: ENV['DB_NAME'] || 'xml_framework_db',
+                        user: ENV['DB_USER'] || 'postgres',
+                        password: ENV['DB_PASSWORD'] || 'password'
+                      )
+                    end
+    end
+
+    def self.from_env
+      new
     end
 
     def execute_tile_query(tile)
@@ -23,30 +33,6 @@ module XmlFramework
       result = @connection.exec(query)
       result.to_a
     end
-
-    def get_dashboard_data
-      # Return sample dashboard data
-      {
-        total_applicants: 1250,
-        admitted_students: 890,
-        unpaid_applications: 45,
-        completed_applications: 1205
-      }
-    end
-
-    def get_desk_data(desk_key)
-      # Return sample data based on desk key
-      case desk_key
-      when '965'
-        get_applications_data
-      when '920'
-        get_admissions_data
-      else
-        { components: [] }
-      end
-    end
-
-    private
 
     def build_tile_query(tile)
       select_clause = tile[:fields].first[:function] || "COUNT(*)"
@@ -65,34 +51,6 @@ module XmlFramework
       limit_clause = grid[:limit] ? "LIMIT #{grid[:limit]}" : ""
 
       "SELECT #{field_names} FROM #{from_clause} #{where_clause} #{order_clause} #{limit_clause}"
-    end
-
-    def get_applications_data
-      {
-        components: [
-          {
-            type: 'grid',
-            data: [
-              { applying_id: 1, surname: 'Smith', first_name: 'John', email: 'john@example.com' },
-              { applying_id: 2, surname: 'Johnson', first_name: 'Jane', email: 'jane@example.com' }
-            ]
-          }
-        ]
-      }
-    end
-
-    def get_admissions_data
-      {
-        components: [
-          {
-            type: 'grid',
-            data: [
-              { registration_id: 1, first_name: 'John', surname: 'Smith', existing_id: 'STU001' },
-              { registration_id: 2, first_name: 'Jane', surname: 'Johnson', existing_id: 'STU002' }
-            ]
-          }
-        ]
-      }
     end
   end
 end

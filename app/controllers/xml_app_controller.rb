@@ -2,25 +2,30 @@ class XmlAppController < ApplicationController
   def index
     redirect_to dashboard_path
   end
-  
+
   def dashboard
-    @dashboard_data = @xml_app&.render_page('1') || default_dashboard
-    render 'dashboard'
+    @page_content = xml_engine&.render_page('1') || default_dashboard
+    @menu_html = xml_engine&.menu_html
+    render 'show'
   end
-  
+
   def show
     desk_key = params[:key]
-    @page_content = @xml_app&.render_page(desk_key)
-    
+    view_key = params[:view] || desk_key
+    data_item = params[:data]
+
+    @page_content = xml_engine&.render_page(view_key, data_item: data_item)
+    @menu_html = xml_engine&.menu_html
+
     if @page_content
       render 'show'
     else
       redirect_to dashboard_path, alert: 'Page not found'
     end
   end
-  
+
   private
-  
+
   def default_dashboard
     <<~HTML
       <div class="alert alert-info">

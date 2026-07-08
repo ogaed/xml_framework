@@ -8,7 +8,7 @@
 		</MENU>
 		
 		<MENU icon="fa fa-exchange font-black-sharp" name="Admissions">
-			<MENU icon="far fa-file-check font-black-sharp" name="Applications">965</MENU>
+			<MENU icon="far fa-file-check font-black-sharp" name="Applications" access="open">965</MENU>
 			<MENU icon="far fa-file-check font-black-sharp" name="Paid Applications">796</MENU>
 			<MENU icon="far fa-file-excel font-black-sharp" name="Unsubmitted Applications">828</MENU>
 			<MENU icon="far fa-file-check font-black-sharp" name="Submitted applications">787</MENU>
@@ -51,6 +51,8 @@
 			<TEXTFIELD w="75" title="Primary Telephone">primary_telephone</TEXTFIELD>
 			<CHECKBOX w="50" title="Paid">paid</CHECKBOX>
 			<TEXTFIELD w="75" title="Status">status</TEXTFIELD>
+			<WEBLINK w="80" title="Portal" url="https://example.com/applicant/{applying_id}">applying_id</WEBLINK>
+			<EDITFIELD w="100" title="Middle Name">middle_name</EDITFIELD>
 			
 			<FORM keyfield="applying_id" name="Applications" table="applying">
 				<TEXTFIELD w="150" h="20" x="10" y="10" title="Surname">surname</TEXTFIELD>
@@ -98,5 +100,37 @@
 				<TEXTAREA w="430" h="70" x="10" y="50" title="Details">details</TEXTAREA>
 			</FORM>
 		</GRID>
+	</DESK>
+
+	<DESK access="admin" w="800" h="600" name="Reports" key="900">
+		<FILTER name="Application Reports" location="top">
+			<DRILLDOWN name="By Major" filter="major_id" keyfield="major_id" listfield="major_name" table="majors" />
+			<FILTERGRID name="Results" filter="major_id" filterfield="major_id" keyfield="applying_id" table="applying">
+				<TEXTFIELD w="75" title="ID">applying_id</TEXTFIELD>
+				<TEXTFIELD w="100" title="Surname">surname</TEXTFIELD>
+				<TEXTFIELD w="100" title="First Name">first_name</TEXTFIELD>
+				<CHECKBOX w="60" title="Paid">paid</CHECKBOX>
+			</FILTERGRID>
+			<JASPER name="Applications PDF" reportfile="applications" filtered="true" />
+		</FILTER>
+	</DESK>
+
+	<DESK access="open" w="800" h="600" name="Major Details" key="827">
+		<ACCORDION name="Major Management">
+			<FORM name="Major Info" table="majors" keyfield="major_id">
+				<TEXTFIELD w="300" h="20" x="10" y="10" title="Major Name">major_name</TEXTFIELD>
+				<TEXTDECIMAL w="150" h="20" x="10" y="40" title="Fee">application_fees</TEXTDECIMAL>
+				<CHECKBOX w="150" h="20" x="200" y="40" title="Can Apply">can_apply</CHECKBOX>
+			</FORM>
+			<GRID name="Related Applications" table="applying" keyfield="applying_id" linkfield="major_id">
+				<TEXTFIELD w="75" title="ID">applying_id</TEXTFIELD>
+				<TEXTFIELD w="100" title="Name">first_name</TEXTFIELD>
+				<TEXTFIELD w="100" title="Surname">surname</TEXTFIELD>
+			</GRID>
+		</ACCORDION>
+	</DESK>
+
+	<DESK access="admin" w="700" h="400" name="Export" key="901">
+		<JASPER name="Admissions Report" reportfile="admissions" filtered="false" />
 	</DESK>
 </APP>

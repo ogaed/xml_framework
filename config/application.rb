@@ -9,6 +9,7 @@ module XmlFrameworkApp
     
     # Initialize the XML framework
     config.after_initialize do
+      require 'xml_framework'
       if File.exist?(Rails.root.join('config', 'app.xml'))
         Rails.application.xml_app = XmlFramework::Application.new(
           Rails.root.join('config', 'app.xml')
